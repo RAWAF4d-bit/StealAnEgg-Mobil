@@ -2,8 +2,8 @@
 -- 🔥 STEAL AN EGG | ULTIMATE MOBILE HUB (CUSTOM SCRIPT)
 -- =========================================================
 
--- 1. تحميل مكتبة Orion UI (خفيفة وسلسة جداً على الجوال)
-local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
+-- 1. تحميل مكتبة Orion UI برابط مباشر مستقر
+local OrionLib = loadstring(game:HttpGet('https://raw.githubusercontent.com/shlexware/Orion/main/source'))()
 
 local Window = OrionLib:MakeWindow({
     Name = "🥚 Steal An Egg | Ultimate Mobile", 
@@ -17,8 +17,6 @@ local Window = OrionLib:MakeWindow({
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local Workspace = game:GetService("Workspace")
-local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
 
 -- المتغيرات العامة للتحكم
 getgenv().SelectedEgg = "Devian" -- الافتراضي
@@ -38,7 +36,7 @@ local EggTypes = {
 }
 
 ---------------------------------------------------------
--- 1️⃣ التبويب الأول: السرقة المخصصة (Targeted Farm)
+-- 1️⃣ التبويب الأول: السرقة والتدريب (Targeted Farm)
 ---------------------------------------------------------
 local FarmTab = Window:MakeTab({
     Name = "السرقة والتدريب",
@@ -46,7 +44,6 @@ local FarmTab = Window:MakeTab({
     PremiumOnly = false
 })
 
--- اختيار نوع البيض المطلوب
 FarmTab:AddDropdown({
     Name = "اختر نوع البيض للسرقة:",
     Default = "Devian",
@@ -56,7 +53,6 @@ FarmTab:AddDropdown({
     end    
 })
 
--- تشغيل/إيقاف السرقة المحددة
 FarmTab:AddToggle({
     Name = "تفعيل السرقة التلقائية للبيض المحدد",
     Default = false,
@@ -65,7 +61,6 @@ FarmTab:AddToggle({
     end    
 })
 
--- تشغيل/إيقاف جهاز السير عند الانتظار
 FarmTab:AddToggle({
     Name = "الذهاب لجهاز السير (Treadmill) عند عدم وجود بيض",
     Default = false,
@@ -74,7 +69,6 @@ FarmTab:AddToggle({
     end    
 })
 
--- 🛑 زر إيقاف مؤقت لإعطاء البيض لخويك
 FarmTab:AddToggle({
     Name = "🛑 إيقاف مؤقت للسرقة (لنقل البيض لخويك)",
     Default = false,
@@ -99,34 +93,27 @@ local TrackerTab = Window:MakeTab({
     PremiumOnly = false
 })
 
--- زر تحديث كشف البيض المباشر (مرتب من الأعلى أرباحاً للأقل)
 TrackerTab:AddButton({
     Name = "🔄 تحديث قائمة البيض والأرباح بالماب",
     Callback = function()
-        -- جلب وتصفية جميع البيض بالماب
         local FoundEggs = {}
         
         for _, obj in pairs(Workspace:GetDescendants()) do
             if obj.Name:lower():find("egg") and (obj:IsA("BasePart") or obj:IsA("Model")) then
-                -- استخراج الأرباح افتراضياً أو قراءتها من Stats اللعبة
-                local cashPerSec = obj:FindFirstChild("CashPerSec") and obj.CashPerSec.Value or math.random(100, 5000)
-                local petImage = "rbxassetid://7072724495" -- صورة افتراضية للحيوان
+                local cashPerSec = obj:FindFirstChild("CashPerSec") and obj.CashPerSec.Value or 100
                 
                 table.insert(FoundEggs, {
                     Instance = obj,
                     Name = obj.Name,
-                    Cash = cashPerSec,
-                    Image = petImage
+                    Cash = cashPerSec
                 })
             end
         end
 
-        -- ترتيب البيض من الأعلى فلوس بالثانية إلى الأقل
         table.sort(FoundEggs, function(a, b)
             return a.Cash > b.Cash
         end)
 
-        -- عرض التنبيه بأعلى بيضة متوفرة
         if #FoundEggs > 0 then
             OrionLib:MakeNotification({
                 Name = "أعلى بيضة بالماب!",
@@ -152,15 +139,10 @@ local SettingsTab = Window:MakeTab({
     PremiumOnly = false
 })
 
--- زر إخفاء وإظهار الواجهة للجوال
 SettingsTab:AddButton({
-    Name = "إخفاء / إظهار الواجهة (Toggle UI)",
+    Name = "إغلاق السكربت تماماً",
     Callback = function()
-        for _, gui in pairs(game:GetService("CoreGui"):GetChildren()) do
-            if gui:FindFirstChild("Main") then
-                gui.Enabled = not gui.Enabled
-            end
-        end
+        OrionLib:Destroy()
     end    
 })
 
@@ -168,41 +150,43 @@ SettingsTab:AddButton({
 -- 🔄 خوارزميات العمل في الخلفية (Backend Mechanics)
 ---------------------------------------------------------
 
--- حلقة السرقة والذهاب لجهاز السير عند عدم وجود بيض
 task.spawn(function()
-    while task.wait(0.3) do
-        -- إذا لم يقم اللاعب بالضغط على زر الإيقاف المؤقت
+    while task.wait(0.5) do
         if not getgenv().PausedForTrade then
-            
             if getgenv().AutoTargetSteal then
                 local eggFound = false
                 
-                -- البحث عن البيض المحدد
                 for _, v in pairs(Workspace:GetDescendants()) do
                     if v.Name:lower():find(getgenv().SelectedEgg:lower()) then
                         local target = v:IsA("BasePart") and v or v:FindFirstChildWhichIsA("BasePart")
                         if target and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
                             eggFound = true
-                            -- الانتقال للبيضة وسرقتها
-                            LocalPlayer.Character.HumanoidRootPart.CFrame = target.CFrame + Vector3.new(0, 2, 0)
                             
-                            if v:FindFirstChildOfClass("ProximityPrompt") then
-                                fireproximityprompt(v:FindFirstChildOfClass("ProximityPrompt"))
-                            elseif v:FindFirstChildOfClass("ClickDetector") then
-                                fireclickdetector(v:FindFirstChildOfClass("ClickDetector"))
+                            -- الانتقال للبيضة
+                            LocalPlayer.Character.HumanoidRootPart.CFrame = target.CFrame + Vector3.new(0, 3, 0)
+                            
+                            -- أخذ البيضة
+                            local prompt = v:FindFirstChildOfClass("ProximityPrompt") or v:FindFirstChildWhichIsA("ProximityPrompt", true)
+                            local detector = v:FindFirstChildOfClass("ClickDetector") or v:FindFirstChildWhichIsA("ClickDetector", true)
+                            
+                            if prompt and fireproximityprompt then
+                                fireproximityprompt(prompt)
+                            elseif detector and fireclickdetector then
+                                fireclickdetector(detector)
                             end
+                            
                             break
                         end
                     end
                 end
                 
-                -- إذا لم يجد بيض من النوع المحدد وتفعيل خيار Treadmill
+                -- التوجه للـ Treadmill
                 if not eggFound and getgenv().AutoTreadmill then
                     for _, machine in pairs(Workspace:GetDescendants()) do
                         if machine.Name:lower():find("treadmill") or machine.Name:lower():find("tread") then
                             local part = machine:IsA("BasePart") and machine or machine:FindFirstChildWhichIsA("BasePart")
                             if part and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                                LocalPlayer.Character.HumanoidRootPart.CFrame = part.CFrame + Vector3.new(0, 2, 0)
+                                LocalPlayer.Character.HumanoidRootPart.CFrame = part.CFrame + Vector3.new(0, 3, 0)
                                 break
                             end
                         end
@@ -210,31 +194,44 @@ task.spawn(function()
                 end
                 
             end
-            
         end
     end
 end)
 
--- زر عائم خاص بإخفاء وإظهار الواجهة لسهولة الاستخدام على الشاشة بالجوال
+-- إنشاء زر عائم لإخفاء/إظهار الشاشة مخصص للجوال
 local ScreenGui = Instance.new("ScreenGui")
 local ToggleButton = Instance.new("TextButton")
+local UICorner = Instance.new("UICorner")
 
-ScreenGui.Parent = game:GetService("CoreGui")
+local parentGui = gethui and gethui() or (game:GetService("CoreGui"):FindFirstChild("RobloxGui") or LocalPlayer:WaitForChild("PlayerGui"))
+ScreenGui.Parent = parentGui
+ScreenGui.Name = "StealEggToggleGui"
+
 ToggleButton.Parent = ScreenGui
-ToggleButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-ToggleButton.Position = UDim2.new(0, 10, 0.4, 0)
-ToggleButton.Size = UDim2.new(0, 80, 0, 35)
+ToggleButton.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+ToggleButton.Position = UDim2.new(0, 15, 0.4, 0)
+ToggleButton.Size = UDim2.new(0, 70, 0, 35)
 ToggleButton.Text = "🥚 GUI"
 ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 ToggleButton.TextSize = 14
+ToggleButton.Font = Enum.Font.SourceSansBold
 ToggleButton.Active = true
-ToggleButton.Draggable = true -- يمديك تحرك الزر في أي مكان على شاشة الجوال
+ToggleButton.Draggable = true
+
+UICorner.CornerRadius = UDim.new(0, 8)
+UICorner.Parent = ToggleButton
 
 ToggleButton.MouseButton1Click:Connect(function()
-    for _, gui in pairs(game:GetService("CoreGui"):GetChildren()) do
-        if gui:FindFirstChild("Main") then
-            gui.Enabled = not gui.Enabled
+    local mainFrame = nil
+    for _, gui in pairs(parentGui:GetChildren()) do
+        if gui.Name == "Orion" or gui:FindFirstChild("Main") then
+            mainFrame = gui
+            break
         end
+    end
+    
+    if mainFrame then
+        mainFrame.Enabled = not mainFrame.Enabled
     end
 end)
 
