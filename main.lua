@@ -1,26 +1,24 @@
 -- =========================================================
--- ⚡ SPEED & INFINITE JUMP HUB (MAX SPEED 1000)
+-- ⚡ REAL SPEED & INFINITE JUMP HUB (CFrame Speed Fix)
 -- =========================================================
 
--- تحميل مكتبة Rayfield UI المضمونة والخفيفة
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
    Name = "⚡ Ultra Speed & Jump Hub",
    LoadingTitle = "جاري تحميل السكربت...",
    LoadingSubtitle = "by RAWAF4d",
-   ConfigurationSaving = {
-      Enabled = false
-   },
+   ConfigurationSaving = { Enabled = false },
    KeySystem = false
 })
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
 
 getgenv().SpeedToggle = false
-getgenv().WalkSpeedValue = 16
+getgenv().WalkSpeedValue = 50
 getgenv().InfJumpToggle = false
 
 ---------------------------------------------------------
@@ -28,36 +26,26 @@ getgenv().InfJumpToggle = false
 ---------------------------------------------------------
 local MainTab = Window:CreateTab("الرئيسية", 4483345998)
 
--- 1️⃣ زر تفعيل/إيقاف السرعة
+-- 1️⃣ زر تفعيل/إيقاف السرعة الحقيقية
 MainTab:CreateToggle({
-   Name = "تفعيل السرعة المخصصة",
+   Name = "تفعيل السرعة المخصصة الحقيقية",
    CurrentValue = false,
    Flag = "SpeedToggleFlag",
    Callback = function(Value)
       getgenv().SpeedToggle = Value
-      if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-         if Value then
-            LocalPlayer.Character.Humanoid.WalkSpeed = getgenv().WalkSpeedValue
-         else
-            LocalPlayer.Character.Humanoid.WalkSpeed = 16
-         end
-      end
    end,
 })
 
--- 2️⃣ شريط التحكم بالسرعة (تم رفعه إلى 1000)
+-- 2️⃣ شريط التحكم بالسرعة
 MainTab:CreateSlider({
-   Name = "تحديد مقدار السرعة (سرعة جنونية)",
-   Range = {16, 1000},
+   Name = "تحديد مقدار السرعة",
+   Range = {16, 500},
    Increment = 5,
    Suffix = " Speed",
-   CurrentValue = 16,
+   CurrentValue = 50,
    Flag = "SpeedSliderFlag",
    Callback = function(Value)
       getgenv().WalkSpeedValue = Value
-      if getgenv().SpeedToggle and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-         LocalPlayer.Character.Humanoid.WalkSpeed = Value
-      end
    end,
 })
 
@@ -72,19 +60,24 @@ MainTab:CreateToggle({
 })
 
 ---------------------------------------------------------
--- 🔄 خوارزمية التشغيل الآمنة بدون كراش
+-- 🔄 خوارزمية السرعة المباشرة (CFrame Physics)
 ---------------------------------------------------------
 
--- حلقة خفيفة جداً للسرعة مع حماية من الكراش
-task.spawn(function()
-   while task.wait(0.1) do
-      if getgenv().SpeedToggle then
-         pcall(function()
-            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-               LocalPlayer.Character.Humanoid.WalkSpeed = getgenv().WalkSpeedValue
+RunService.RenderStepped:Connect(function(delta)
+   if getgenv().SpeedToggle then
+      pcall(function()
+         local character = LocalPlayer.Character
+         if character and character:FindFirstChild("Humanoid") and character:FindFirstChild("HumanoidRootPart") then
+            local humanoid = character.Humanoid
+            local hrp = character.HumanoidRootPart
+            
+            -- التأكد من أن اللاعب يحرك شخصيته
+            if humanoid.MoveDirection.Magnitude > 0 then
+               -- تحريك الشخصية للأمام بناءً على الاتجاه والسرعة المحددة
+               hrp.CFrame = hrp.CFrame + (humanoid.MoveDirection * (getgenv().WalkSpeedValue / 10) * (delta * 60))
             end
-         end)
-      end
+         end
+      end)
    end
 end)
 
@@ -100,8 +93,8 @@ UserInputService.JumpRequest:Connect(function()
 end)
 
 Rayfield:Notify({
-   Title = "⚡ تم تفعيل السرعة الفائقة!",
-   Content = "يمكنك الآن رفع السرعة حتى 1000.",
+   Title = "⚡ تم التحديث بنجاح!",
+   Content = "السرعة الآن تعمل بنظام CFrame وسوف تتحرك شخصيتك فوراً.",
    Duration = 5,
    Image = 4483345998,
 })
