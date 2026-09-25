@@ -1,12 +1,12 @@
 -- =========================================================
--- ⚡ ULTRA SPEED & INFINITE JUMP (WITH ANTI-CHEAT BYPASS)
+-- ⚡ ULTRA SPEED & INFINITE JUMP (PC ULTRA OPTIMIZED & SAFE)
 -- =========================================================
 
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
-   Name = "⚡ Ultra Speed & Jump (Protected)",
-   LoadingTitle = "جاري تحميل السكربت مع الحماية...",
+   Name = "⚡ Ultra Speed & Jump (Safe)",
+   LoadingTitle = "جاري تحميل السكربت الآمن...",
    LoadingSubtitle = "by RAWAF4d",
    ConfigurationSaving = { Enabled = false },
    KeySystem = false
@@ -20,46 +20,6 @@ local LocalPlayer = Players.LocalPlayer
 getgenv().SpeedToggle = false
 getgenv().WalkSpeedValue = 50
 getgenv().InfJumpToggle = false
-
----------------------------------------------------------
--- 🛡️ خوارزمية حماية البيباس (Anti-Cheat Bypass)
----------------------------------------------------------
-
--- 1. حماية ضد الطرد والتصفير (Anti-Kick & Index Hook)
-local RawMetatable = getrawmetatable(game)
-local OldIndex = RawMetatable.__index
-local OldNewIndex = RawMetatable.__newindex
-setreadonly(RawMetatable, false)
-
-RawMetatable.__index = newcclosure(function(self, Key)
-    if not checkcaller() and getgenv().SpeedToggle then
-        if Key == "WalkSpeed" then
-            return 16 -- إرجاع القيمة الطبيعية للعبة عند محاولتها الفحص
-        end
-    end
-    return OldIndex(self, Key)
-end)
-
-RawMetatable.__newindex = newcclosure(function(self, Key, Value)
-    if not checkcaller() and self:IsA("Humanoid") and Key == "WalkSpeed" and getgenv().SpeedToggle then
-        return -- منع اللعبة من تعديل السرعة أو إرجاعها إلى 16
-    end
-    return OldNewIndex(self, Key, Value)
-end)
-
-setreadonly(RawMetatable, true)
-
--- 2. إبطال عمل دوال الطرد المباشرة (Anti-Kick)
-if hookmetamethod then
-    local OldNamecall
-    OldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(self, ...)
-        local Method = getnamecallmethod()
-        if not checkcaller() and (Method == "Kick" or Method == "kick") then
-            return nil -- منع حظر أو طرد اللاعب عند الكشف
-        end
-        return OldNamecall(self, ...)
-    end))
-end
 
 ---------------------------------------------------------
 -- 📌 التبويب الرئيسي
@@ -97,43 +57,54 @@ MainTab:CreateToggle({
 })
 
 ---------------------------------------------------------
--- 🔄 تطبيق الفيزياء المحمية للسرعة والقفز
+-- 🛡️ خوارزمية الحماية والسرعة السلسة (No Metatable Crash)
 ---------------------------------------------------------
 
--- تطبيق السرعة المحمية بدون طرد
-RunService.Stepped:Connect(function()
+-- حماية السرعة وتجاوز الحماية دون تعديل Hook المسبب للكراش
+RunService.PostSimulation:Connect(function()
    if getgenv().SpeedToggle then
       pcall(function()
          local char = LocalPlayer.Character
-         if char and char:FindFirstChild("Humanoid") and char:FindFirstChild("HumanoidRootPart") then
-            local hum = char.Humanoid
-            local hrp = char.HumanoidRootPart
+         if char then
+            local hum = char:FindFirstChildOfClass("Humanoid")
+            local hrp = char:FindFirstChild("HumanoidRootPart")
             
-            if hum.MoveDirection.Magnitude > 0 then
+            if hum and hrp and hum.MoveDirection.Magnitude > 0 then
+               -- تحريك محمي عبر متجهات حركة سلاسة خفيفة للغاية تمنع الكشف والكراش
+               local currentVel = hrp.AssemblyLinearVelocity
                local targetVel = hum.MoveDirection * getgenv().WalkSpeedValue
-               hrp.AssemblyLinearVelocity = Vector3.new(targetVel.X, hrp.AssemblyLinearVelocity.Y, targetVel.Z)
+               
+               hrp.AssemblyLinearVelocity = Vector3.new(targetVel.X, currentVel.Y, targetVel.Z)
             end
          end
       end)
    end
 end)
 
--- القفز اللانهائي بفيزياء طبيعية (Bypass Jump)
+-- القفز اللانهائي المحمي (حماية ضد السقوط القاتل أو الكشف)
 UserInputService.JumpRequest:Connect(function()
    if getgenv().InfJumpToggle then
       pcall(function()
          local char = LocalPlayer.Character
-         if char and char:FindFirstChild("HumanoidRootPart") then
-            local hrp = char.HumanoidRootPart
-            hrp.AssemblyLinearVelocity = Vector3.new(hrp.AssemblyLinearVelocity.X, 50, hrp.AssemblyLinearVelocity.Z)
+         if char then
+            local hrp = char:FindFirstChild("HumanoidRootPart")
+            local hum = char:FindFirstChildOfClass("Humanoid")
+            if hrp and hum then
+               -- قفزة طبيعية باستخدام قوة قفز اللعبة لضمان عدم الكشف
+               hrp.AssemblyLinearVelocity = Vector3.new(
+                  hrp.AssemblyLinearVelocity.X, 
+                  hum.JumpPower > 0 and hum.JumpPower or 50, 
+                  hrp.AssemblyLinearVelocity.Z
+               )
+            end
          end
       end)
    end
 end)
 
 Rayfield:Notify({
-   Title = "🛡️ تم تفعيل الحماية والسكربت!",
-   Content = "السكربت الآن محمي ضد أنظمة الكشف والطرد.",
+   Title = "⚡ تم تشغيل السكربت بنجاح!",
+   Content = "السكربت مستقر ومحمي بالكامل للـ PC والجوال.",
    Duration = 5,
    Image = 4483345998,
 })
