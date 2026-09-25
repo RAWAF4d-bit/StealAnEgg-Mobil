@@ -1,12 +1,12 @@
 -- =========================================================
--- ⚡ SPEED & INFINITE JUMP HUB (RAYFIELD UI - PC FIX)
+-- ⚡ SPEED & INFINITE JUMP HUB (MAX SPEED 1000)
 -- =========================================================
 
 -- تحميل مكتبة Rayfield UI المضمونة والخفيفة
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
-   Name = "⚡ Speed & Jump Hub",
+   Name = "⚡ Ultra Speed & Jump Hub",
    LoadingTitle = "جاري تحميل السكربت...",
    LoadingSubtitle = "by RAWAF4d",
    ConfigurationSaving = {
@@ -45,11 +45,11 @@ MainTab:CreateToggle({
    end,
 })
 
--- 2️⃣ شريط التحكم بالسرعة
+-- 2️⃣ شريط التحكم بالسرعة (تم رفعه إلى 1000)
 MainTab:CreateSlider({
-   Name = "تحديد مقدار السرعة",
-   Range = {16, 300},
-   Increment = 1,
+   Name = "تحديد مقدار السرعة (سرعة جنونية)",
+   Range = {16, 1000},
+   Increment = 5,
    Suffix = " Speed",
    CurrentValue = 16,
    Flag = "SpeedSliderFlag",
@@ -77,7 +77,7 @@ MainTab:CreateToggle({
 
 -- حلقة خفيفة جداً للسرعة مع حماية من الكراش
 task.spawn(function()
-   while task.wait(0.2) do
+   while task.wait(0.1) do
       if getgenv().SpeedToggle then
          pcall(function()
             if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
@@ -100,8 +100,8 @@ UserInputService.JumpRequest:Connect(function()
 end)
 
 Rayfield:Notify({
-   Title = "⚡ تم تشغيل السكربت!",
-   Content = "السكربت جاهز ومستقر على الـ PC الآن.",
+   Title = "⚡ تم تفعيل السرعة الفائقة!",
+   Content = "يمكنك الآن رفع السرعة حتى 1000.",
    Duration = 5,
    Image = 4483345998,
 })
