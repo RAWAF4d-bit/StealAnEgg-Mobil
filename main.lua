@@ -1,5 +1,5 @@
 -- =========================================================
--- ⚡ REAL SPEED & INFINITE JUMP HUB (CFrame Speed Fix)
+-- ⚡ ULTRA SPEED & INFINITE JUMP (ULTIMATE BYPASS)
 -- =========================================================
 
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
@@ -26,9 +26,9 @@ getgenv().InfJumpToggle = false
 ---------------------------------------------------------
 local MainTab = Window:CreateTab("الرئيسية", 4483345998)
 
--- 1️⃣ زر تفعيل/إيقاف السرعة الحقيقية
+-- 1️⃣ زر تفعيل/إيقاف السرعة
 MainTab:CreateToggle({
-   Name = "تفعيل السرعة المخصصة الحقيقية",
+   Name = "تفعيل السرعة القوية جداً",
    CurrentValue = false,
    Flag = "SpeedToggleFlag",
    Callback = function(Value)
@@ -39,7 +39,7 @@ MainTab:CreateToggle({
 -- 2️⃣ شريط التحكم بالسرعة
 MainTab:CreateSlider({
    Name = "تحديد مقدار السرعة",
-   Range = {16, 500},
+   Range = {10, 500},
    Increment = 5,
    Suffix = " Speed",
    CurrentValue = 50,
@@ -60,21 +60,28 @@ MainTab:CreateToggle({
 })
 
 ---------------------------------------------------------
--- 🔄 خوارزمية السرعة المباشرة (CFrame Physics)
+-- 🔄 خوارزمية السرعة الخارقة (Physics Velocity Bypass)
 ---------------------------------------------------------
 
-RunService.RenderStepped:Connect(function(delta)
+RunService.Heartbeat:Connect(function()
    if getgenv().SpeedToggle then
       pcall(function()
-         local character = LocalPlayer.Character
-         if character and character:FindFirstChild("Humanoid") and character:FindFirstChild("HumanoidRootPart") then
-            local humanoid = character.Humanoid
-            local hrp = character.HumanoidRootPart
+         local char = LocalPlayer.Character
+         if char and char:FindFirstChild("Humanoid") and char:FindFirstChild("HumanoidRootPart") then
+            local hum = char.Humanoid
+            local hrp = char.HumanoidRootPart
             
-            -- التأكد من أن اللاعب يحرك شخصيته
-            if humanoid.MoveDirection.Magnitude > 0 then
-               -- تحريك الشخصية للأمام بناءً على الاتجاه والسرعة المحددة
-               hrp.CFrame = hrp.CFrame + (humanoid.MoveDirection * (getgenv().WalkSpeedValue / 10) * (delta * 60))
+            -- تغيير WalkSpeed الكلاسيكي لضمان الشغل
+            hum.WalkSpeed = getgenv().WalkSpeedValue
+            
+            -- تدعيم الحركة عن طريق الفيزياء الحقيقية في حال كان الماب يحظر WalkSpeed
+            if hum.MoveDirection.Magnitude > 0 then
+               local moveDir = hum.MoveDirection
+               hrp.AssemblyLinearVelocity = Vector3.new(
+                  moveDir.X * getgenv().WalkSpeedValue, 
+                  hrp.AssemblyLinearVelocity.Y, 
+                  moveDir.Z * getgenv().WalkSpeedValue
+               )
             end
          end
       end)
@@ -93,8 +100,8 @@ UserInputService.JumpRequest:Connect(function()
 end)
 
 Rayfield:Notify({
-   Title = "⚡ تم التحديث بنجاح!",
-   Content = "السرعة الآن تعمل بنظام CFrame وسوف تتحرك شخصيتك فوراً.",
+   Title = "⚡ تم التفعيل!",
+   Content = "السرعة الآن مدعومة بالفيزياء المباشرة وسوف تعمل معك فوراً.",
    Duration = 5,
    Image = 4483345998,
 })
